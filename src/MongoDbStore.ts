@@ -10,30 +10,37 @@ export type Query<T> = Mongo.FilterQuery<T>;
 
 export type Projection<T> = { [key in keyof T]?: boolean };
 
+// This store is a singleton, you can asynchronously get an instance with getInstance()
 export class MongoDbStore {
-    private client: Mongo.MongoClient;
     private db: Db;
+    private static instance: MongoDbStore;
 
     private constructor(client: Mongo.MongoClient) {
-        this.client = client;
         this.db = client.db();
     }
 
-    static connect = async (): Promise<MongoDbStore> => {
+    static connect = async (): Promise<void> => {
+        // First instance, connect to db!
         try {
             const connectionString: string = process.env.MONGODB_CONNECTION_STRING;
             const client: Mongo.MongoClient = await MongoClient.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true });
 
-            return new MongoDbStore(client);
+            MongoDbStore.instance = new MongoDbStore(client);
+            return;
         } catch (err) {
             console.error('Could not connect to MongoDB! Is your ENV correctly set up?\n');
             console.error(err);
             throw err;
         }
-    };
+    }
 
-    public closeConnection = async (): Promise<void> => {
-        await this.client.close();
+    static getInstance = async (): Promise<MongoDbStore> => {
+        // Return the instance created by connect
+        if(MongoDbStore.instance) {
+            return MongoDbStore.instance;
+        } else {
+            throw new Error(`Cannot get instance from disconnected DB! Please await MongoDbStore.connect() first.`);
+        }
     };
 
     public collection = <T>(name: StoreCollection): Mongo.Collection<T> => {
