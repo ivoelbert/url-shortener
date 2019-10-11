@@ -15,8 +15,8 @@ export class MongoDbStore {
     private db: Db;
     private static instance: MongoDbStore;
 
-    private constructor(client: Mongo.MongoClient) {
-        this.db = client.db();
+    private constructor(db: Db) {
+        this.db = db;
     }
 
     static connect = async (): Promise<void> => {
@@ -25,7 +25,10 @@ export class MongoDbStore {
             const connectionString: string = process.env.MONGODB_CONNECTION_STRING;
             const client: Mongo.MongoClient = await MongoClient.connect(connectionString, { useNewUrlParser: true, useUnifiedTopology: true });
 
-            MongoDbStore.instance = new MongoDbStore(client);
+            const db = client.db();
+
+            MongoDbStore.instance = new MongoDbStore(db);
+
             return;
         } catch (err) {
             console.error('Could not connect to MongoDB! Is your ENV correctly set up?\n');
@@ -34,7 +37,7 @@ export class MongoDbStore {
         }
     }
 
-    static getInstance = async (): Promise<MongoDbStore> => {
+    static getInstance = (): MongoDbStore => {
         // Return the instance created by connect
         if(MongoDbStore.instance) {
             return MongoDbStore.instance;
