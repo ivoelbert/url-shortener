@@ -5,6 +5,6 @@ const shortenUrl = Router();
 
 shortenUrl.get('/:shortUrl', decodeShortUrlHandler);
 
-shortenUrl.post('/', encodeLongUrlHandler);
+shortenUrl.post('/url', encodeLongUrlHandler);
 
 export default shortenUrl;
