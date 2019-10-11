@@ -1,9 +1,10 @@
-import { MongoDbStore } from './MongoDbStore';
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
 import * as dotenv from 'dotenv';
 import * as cors from 'cors';
 
+import { MongoDbStore } from './MongoDbStore';
+import { ensureIndexes } from './ensureIndexes';
 import routes from './shortenUrl/router';
 
 dotenv.config();
@@ -27,13 +28,15 @@ const buildApp = (): express.Express => {
 const start = async (): Promise<void> => {
     // Connect to Mongo!
     await MongoDbStore.connect();
+    await ensureIndexes();
+    console.info(`Connected to DB and ensured the necessary indexes.`)
 
     const app: express.Express = buildApp();
 
     const port: number = app.get('port');
 
     app.listen(port, () => {
-        console.info(`API is listening on port ${port}`);
+        console.info(`API is listening on port ${port}...`);
     });
 };
 
