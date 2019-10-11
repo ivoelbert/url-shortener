@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { decodeShortUrl, encodeShortUrl } from './controller'
+import { decodeShortUrlHandler, encodeLongUrlHandler } from './controller';
 
 const shortenUrl = Router();
 
-shortenUrl.get('/:shortUrl', decodeShortUrl);
+shortenUrl.get('/:shortUrl', decodeShortUrlHandler);
 
-shortenUrl.post('/', encodeShortUrl);
+shortenUrl.post('/', encodeLongUrlHandler);
 
 export default shortenUrl;
