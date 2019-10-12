@@ -6,11 +6,9 @@ export type StoreCollection = 'short_urls';
 
 export type Db = Mongo.Db;
 
-export type Query<T> = Mongo.FilterQuery<T>;
-
-export type Projection<T> = { [key in keyof T]?: boolean };
-
-// This store is a singleton, you can asynchronously get an instance with getInstance()
+// This store is a singleton
+// You should first connect to mongo with connect()
+// then you can get the instance with getInstance()
 export class MongoDbStore {
     private db: Db;
     private static instance: MongoDbStore;
