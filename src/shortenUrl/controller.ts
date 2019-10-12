@@ -82,7 +82,26 @@ export const encodeLongUrlHandler = async (req: Request, res: Response): Promise
 export const decodeShortUrlHandler = async (req: Request, res: Response): Promise<void> => {
     const { shortUrl } = req.params;
 
-    res.status(501).send('Not implemented... Yet!');
+    const store = MongoDbStore.getInstance();
+    const collection = store.collection<ShortUrl>('short_urls');
+
+    const entry = await collection.findOneAndUpdate(
+        {
+            shortUrl,
+        },
+        {
+            $inc: { accessCount: 1 },
+        }
+    );
+
+    const { value } = entry;
+
+    if (value) {
+        const { originalUrl } = value;
+        res.redirect(301, originalUrl);
+    } else {
+        res.status(404).send('Not found!');
+    }
 
     return;
 };
