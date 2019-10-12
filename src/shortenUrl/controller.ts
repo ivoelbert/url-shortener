@@ -1,11 +1,10 @@
 import { Request, Response } from 'express-serve-static-core';
 import * as validUrl from 'valid-url';
-import * as cheerio from 'cheerio';
-import * as request from 'request-promise';
 
 import shortUniqueId from '../services/shortIds';
 import { MongoDbStore } from '../MongoDbStore';
 import { ShortUrl } from '../models/shortUrls';
+import { getTitle } from './scrapeTitle';
 
 class ExposedError extends Error {
     status: number;
@@ -17,32 +16,6 @@ class ExposedError extends Error {
         this.name = 'ExposedError';
     }
 }
-/*
- *   To be fair this is not optimal.
- *
- *   We are fetching the whole HTML to get just the title (which also happens to be way up the document)
- *   A better way to do this would be:
- *
- *   - get the stream from that request
- *   - pipe it through an HTML parser (htmlparser2 is good)
- *   - wait for 'onopentag' for <title>
- *   - consume the stream appending each chunk to the title being built.
- *   - when we find a 'onclosetag' for </title> close the stream and return the built title.
- *
- *   This is much better, but it's also more complex.
- *   Let's keep it simple and we can improve this later if there's time :)
- */
-const getTitle = async (url: string): Promise<string> => {
-    try {
-        const html = await request(url);
-        const title: string = cheerio('title', html).html();
-
-        return title;
-    } catch (err) {
-        console.warn(`Could not get title from '${url}'`);
-        return null;
-    }
-};
 
 // We export this function so we can mock stuff.
 export const encodeLongUrl = async (longUrl: string): Promise<string> => {
@@ -103,6 +76,8 @@ export const encodeLongUrlHandler = async (req: Request, res: Response): Promise
 
 // Express handler for GET /:shortUrl
 export const decodeShortUrlHandler = async (req: Request, res: Response): Promise<void> => {
+    const { shortUrl } = req.params;
+
     res.status(501).send('Not implemented... Yet!');
 
     return;
