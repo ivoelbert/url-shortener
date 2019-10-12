@@ -1,6 +1,5 @@
-import * as request from 'request';
+import axios from 'axios';
 import * as htmlparser from 'htmlparser2';
-import { PassThrough } from 'stream';
 
 /*
  *  This code is extremely weird because the logic is very specific
@@ -16,51 +15,59 @@ import { PassThrough } from 'stream';
  */
 
 export const getTitle = async (url: string): Promise<string> => {
-    let title: string = null;
-    let parsingTitle: boolean = false;
-    let finishedParsing: boolean = false;
+    try {
+        let title: string = null;
+        let parsingTitle: boolean = false;
+        let finishedParsing: boolean = false;
 
-    const Parser = new htmlparser.Parser(
-        {
-            onopentag: name => {
-                if (name === 'title') {
-                    parsingTitle = true;
-                    title = '';
-                }
-            },
+        const Parser = new htmlparser.Parser(
+            {
+                onopentag: name => {
+                    if (name === 'title') {
+                        parsingTitle = true;
+                        title = '';
+                    }
+                },
 
-            ontext: text => {
-                if (parsingTitle) {
-                    title += text;
-                }
-            },
+                ontext: text => {
+                    if (parsingTitle) {
+                        title += text;
+                    }
+                },
 
-            onclosetag: tagname => {
-                if (tagname === 'title') {
+                onclosetag: tagname => {
+                    if (tagname === 'title') {
+                        finishedParsing = true;
+                        parsingTitle = false;
+                    }
+                },
+
+                onend: () => {
                     finishedParsing = true;
                     parsingTitle = false;
-                }
+                },
             },
+            { decodeEntities: true }
+        );
 
-            onend: () => {
-                finishedParsing = true;
-                parsingTitle = false;
-            },
-        },
-        { decodeEntities: true }
-    );
+        // We need to pipe the request to PassThrough cause request doesn't implement [Symbol.asyncIterator]
+        const response = await axios({
+            method: 'get',
+            responseType: 'stream',
+            url,
+        });
 
-    // We need to pipe the request to PassThrough cause request doesn't implement [Symbol.asyncIterator]
-    const passThrough: PassThrough = new PassThrough();
-    request(url, { encoding: null }).pipe(passThrough);
+        for await (const chunk of response.data) {
+            Parser.write(chunk);
 
-    for await (const chunk of passThrough) {
-        Parser.write(chunk);
-
-        if (finishedParsing) {
-            break;
+            if (finishedParsing) {
+                break;
+            }
         }
-    }
 
-    return title;
+        return title;
+    } catch (err) {
+        console.error(`Error getting title for '${url}'`);
+        return null;
+    }
 };

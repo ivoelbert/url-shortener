@@ -1,5 +1,6 @@
 import { Request, Response } from 'express-serve-static-core';
 import * as validUrl from 'valid-url';
+import * as normalizeUrl from 'normalize-url';
 
 import shortUniqueId from '../services/shortIds';
 import { MongoDbStore } from '../MongoDbStore';
@@ -17,15 +18,18 @@ class ExposedError extends Error {
     }
 }
 
+// Weird validation, but it does the job. isWebUri accepts http://asd and that's no way a good URL.
+const isValidUrl = (url: string): boolean => {
+    return validUrl.isWebUri(url) && url.includes('.');
+};
+
 // We export this function so we can mock stuff.
 export const encodeLongUrl = async (longUrl: string): Promise<string> => {
-    // Normalize the input, for now we'll just trim the url and add http:// at the front if it's not specified
-    // We can do a much better job with this, keeping it simple.
-    const trimmedUrl = longUrl.trim();
-    const normalizedLongUrl = /(http:\/\/|https:\/\/)/i.test(trimmedUrl) ? trimmedUrl : `http://${trimmedUrl}`;
+    // This normalizer is really nice!
+    const normalizedLongUrl = normalizeUrl(longUrl);
 
     // If it's not a valid URL return a bad request
-    if (!validUrl.isWebUri(normalizedLongUrl)) {
+    if (!isValidUrl(normalizedLongUrl)) {
         throw new ExposedError(400, `BAD REQUEST. Probably malformed URL: '${normalizedLongUrl}'`);
     }
 
