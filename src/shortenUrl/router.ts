@@ -1,7 +1,9 @@
 import { Router } from 'express';
-import { decodeShortUrlHandler, encodeLongUrlHandler } from './controller';
+import { decodeShortUrlHandler, encodeLongUrlHandler, getTopUrls } from './controller';
 
 const shortenUrl = Router();
+
+shortenUrl.get('/top', getTopUrls);
 
 shortenUrl.get('/:shortUrl', decodeShortUrlHandler);
 

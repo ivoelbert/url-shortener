@@ -107,3 +107,25 @@ export const decodeShortUrlHandler = async (req: Request, res: Response): Promis
 
     return;
 };
+
+export const getTopUrls = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { count = 100 } = req.query;
+
+        const store = MongoDbStore.getInstance();
+        const collection = store.collection<ShortUrl>('short_urls');
+
+        const topN = await collection
+            .find({})
+            .sort({ accessCount: -1 })
+            .limit(count)
+            .toArray();
+
+        res.send(topN);
+
+        return;
+    } catch (err) {
+        console.error(err);
+        res.status(500).send(`Something went wrong in our server, please try again later :(`);
+    }
+};
