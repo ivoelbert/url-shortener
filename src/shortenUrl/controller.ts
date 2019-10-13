@@ -110,7 +110,8 @@ export const decodeShortUrlHandler = async (req: Request, res: Response): Promis
 
 export const getTopUrls = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { count = 100 } = req.query;
+        const rawCount: string = req.query.count;
+        const count: number = rawCount ? Number(rawCount) : 100;
 
         const store = MongoDbStore.getInstance();
         const collection = store.collection<ShortUrl>('short_urls');
