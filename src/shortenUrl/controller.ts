@@ -24,7 +24,7 @@ const isValidUrl = (url: string): boolean => {
 };
 
 // We export this function so we can mock stuff.
-export const encodeLongUrl = async (longUrl: string): Promise<string> => {
+export const encodeLongUrl = async (longUrl: string): Promise<ShortUrl> => {
     // This normalizer is really nice!
     const normalizedLongUrl = normalizeUrl(longUrl);
 
@@ -41,20 +41,22 @@ export const encodeLongUrl = async (longUrl: string): Promise<string> => {
     // If it was already stored, return it.
     const entry: ShortUrl = await collection.findOne({ originalUrl: normalizedLongUrl });
     if (entry) {
-        return entry.shortUrl;
+        return entry;
     }
 
     // Get a new short slug for it
     // We assume this slugs are unique. We could add some collition checks, and even some retries, but let's keep it simple.
     const shortSlug: string = await shortUniqueId();
-    await collection.insertOne({
+    const newEntry: ShortUrl = {
         originalUrl: normalizedLongUrl,
         shortUrl: shortSlug,
         accessCount: 0,
         title,
-    });
+    };
 
-    return shortSlug;
+    await collection.insertOne(newEntry);
+
+    return newEntry;
 };
 
 // Express handler for POST /url
@@ -63,8 +65,8 @@ export const encodeLongUrlHandler = async (req: Request, res: Response): Promise
         const { url } = req.body;
 
         // It's valid, encode it, store it, return it!
-        const shortUrlSlug: string = await encodeLongUrl(url);
-        res.status(200).send(`${process.env.HOST_NAME}/${shortUrlSlug}`);
+        const response: ShortUrl = await encodeLongUrl(url);
+        res.status(200).send(response);
 
         return;
     } catch (err) {
