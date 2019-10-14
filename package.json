@@ -3,10 +3,14 @@
   "version": "1.0.0",
   "description": "Small API for URL shortening",
   "main": "index.js",
+  "engines": {
+    "node": "12.11.1"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc -p .",
-    "start": "yarn build -- -w"
+    "watch": "yarn build -- -w",
+    "start": "node dist/index.js"
   },
   "author": "ivoelbert",
   "license": "ISC",
