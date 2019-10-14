@@ -3,7 +3,6 @@ import * as htmlparser from 'htmlparser2';
 
 /*
  *  This code is extremely weird because the logic is very specific
- *  asd
  *
  *  - get the stream from requesting the url
  *  - "pipe" it to the html parser. It's NOT a transform stream, so we can't pipe :(
@@ -50,7 +49,6 @@ export const getTitle = async (url: string): Promise<string> => {
             { decodeEntities: true }
         );
 
-        // We need to pipe the request to PassThrough cause request doesn't implement [Symbol.asyncIterator]
         const response = await axios({
             method: 'get',
             responseType: 'stream',
