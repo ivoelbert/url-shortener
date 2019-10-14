@@ -2,6 +2,8 @@
 
 This API provides some simple functionality to shorten URLs
 
+It's deployed on [http://tinytinylink.herokuapp.com](http://tinytinylink.herokuapp.com)
+
 ## Build
 
 To start the typescript compiler in watch mode run
